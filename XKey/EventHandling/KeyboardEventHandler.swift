@@ -809,8 +809,31 @@ class KeyboardEventHandler: EventTapManager.EventTapDelegate {
     
     /// Apps that should always pass through all keys (remote devices handle input)
     private static let passthroughApps: Set<String> = [
-        // "com.apple.ScreenContinuity",  // iPhone Mirroring - iOS device handles text input
-        "com.apple.iphonesimulator"    // Simulator - iOS simulator handles text input
+        // "com.apple.screencontinuity",  // iPhone Mirroring - iOS device handles text input
+        "com.apple.iphonesimulator",   // Simulator - iOS simulator handles text input
+        
+        // Remote Desktop apps - Vietnamese processing should happen on the remote machine
+        // XKey's backspace+inject pattern gets disrupted over network latency
+        // NOTE: All IDs must be lowercase (compared via bundleId.lowercased())
+        "com.p5sys.jump.mac.viewer",   // Jump Desktop
+        "com.microsoft.rdc.macos",     // Microsoft Remote Desktop
+        "com.apple.remotedesktop",     // Apple Remote Desktop
+        "com.carriez.rustdesk",        // RustDesk
+        "com.teamviewer.teamviewer",   // TeamViewer
+        "com.philandro.anydesk",       // AnyDesk
+        "com.parsecgaming.parsec",     // Parsec
+        "com.moonlight-stream.moonlight", // Moonlight
+        "com.zuler.deskin",            // DeskIn
+        "com.youqu.todesk",            // ToDesk
+        "com.oray.sunloginc",          // Sunlogin (向日葵)
+        "com.splashtop.personal",      // Splashtop Personal
+        "com.nomachine.nxplayer",      // NoMachine
+        "com.realvnc.vncviewer",       // RealVNC Viewer
+        "com.edovia.screens5",         // Screens 5
+        "com.citrix.receiver.nomas",   // Citrix Workspace
+        "com.vmware.horizon",          // VMware Horizon
+        "com.vmware.fusion",           // VMware Fusion
+        "com.parallels.desktop.console", // Parallels Desktop
     ]
     
     /// Check if the current frontmost app is in the excluded list
@@ -842,7 +865,8 @@ class KeyboardEventHandler: EventTapManager.EventTapDelegate {
         }
         
         // Always exclude passthrough apps (iPhone Mirroring, etc.)
-        if Self.passthroughApps.contains(bundleId) {
+        // Case-insensitive: bundle IDs can vary between app versions
+        if Self.passthroughApps.contains(bundleId.lowercased()) {
             return true
         }
         

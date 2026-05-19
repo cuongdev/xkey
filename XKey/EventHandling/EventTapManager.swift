@@ -15,7 +15,10 @@ class EventTapManager {
 
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
+    private var sessionEventTap: CFMachPort?       // Secondary tap for remote desktop input
+    private var sessionRunLoopSource: CFRunLoopSource?
     private var isEnabled = false
+    private var isHIDTapActive = false             // True if primary tap is at HID level
     private var isSuspended = false  // Track suspension state for IMKit mode
     private var isHotkeyRecording = false  // Track if hotkey recording is in progress
     
@@ -147,8 +150,8 @@ class EventTapManager {
         )
         debugLogCallback?("Event mask: \(eventMask)")
         
-        // Callback closure for event tap
-        let callback: CGEventTapCallBack = { proxy, type, event, refcon in
+        // HID tap callback - marks events before passing through
+        let hidCallback: CGEventTapCallBack = { proxy, type, event, refcon in
             guard let refcon = refcon else {
                 return Unmanaged.passUnretained(event)
             }
@@ -164,6 +167,21 @@ class EventTapManager {
             }
         }
         
+        // Session tap callback - processes events NOT seen by HID tap (remote desktop input)
+        let sessionCallback: CGEventTapCallBack = { proxy, type, event, refcon in
+            guard let refcon = refcon else {
+                return Unmanaged.passUnretained(event)
+            }
+
+            let manager = Unmanaged<EventTapManager>.fromOpaque(refcon).takeUnretainedValue()
+
+            if let result = manager.sessionEventCallback(proxy: proxy, type: type, event: event) {
+                return result
+            } else {
+                return nil
+            }
+        }
+        
         let userInfo = Unmanaged.passUnretained(self).toOpaque()
         
         // Create event tap - try HID level first, fallback to session
@@ -174,21 +192,23 @@ class EventTapManager {
             place: .headInsertEventTap,
             options: .defaultTap,
             eventsOfInterest: eventMask,
-            callback: callback,
+            callback: hidCallback,
             userInfo: userInfo
         )
         
         if tap != nil {
+            isHIDTapActive = true
             debugLogCallback?("Event tap created at HID level")
         } else {
-            // Fallback to session level
+            // Fallback to session level (no dual tap needed in this case)
+            isHIDTapActive = false
             debugLogCallback?("HID tap failed, trying session level...")
             tap = CGEvent.tapCreate(
                 tap: .cgSessionEventTap,
                 place: .headInsertEventTap,
                 options: .defaultTap,
                 eventsOfInterest: eventMask,
-                callback: callback,
+                callback: hidCallback,
                 userInfo: userInfo
             )
             if tap != nil {
@@ -203,7 +223,7 @@ class EventTapManager {
         
         eventTap = tap
 
-        // Create run loop source
+        // Create run loop source for primary tap
         debugLogCallback?("Creating run loop source...")
         runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
 
@@ -216,9 +236,34 @@ class EventTapManager {
         // Add to current run loop
         CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
 
-        // Enable the event tap
+        // Enable the primary event tap
         CGEvent.tapEnable(tap: tap, enable: true)
-        debugLogCallback?("Event tap enabled")
+        debugLogCallback?("Primary event tap enabled")
+
+        // DUAL TAP: Create secondary session-level tap for remote desktop input
+        // Only needed when primary tap is at HID level (session-level primary already sees all events)
+        if isHIDTapActive {
+            let sTap = CGEvent.tapCreate(
+                tap: .cgSessionEventTap,
+                place: .headInsertEventTap,
+                options: .defaultTap,
+                eventsOfInterest: eventMask,
+                callback: sessionCallback,
+                userInfo: userInfo
+            )
+            
+            if let sTap = sTap {
+                sessionEventTap = sTap
+                sessionRunLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, sTap, 0)
+                if let sSource = sessionRunLoopSource {
+                    CFRunLoopAddSource(CFRunLoopGetCurrent(), sSource, .commonModes)
+                    CGEvent.tapEnable(tap: sTap, enable: true)
+                    debugLogCallback?("Session tap created (dual tap for remote desktop support)")
+                }
+            } else {
+                debugLogCallback?("⚠️ Session tap creation failed - remote desktop input won't be processed")
+            }
+        }
 
         isEnabled = true
         debugLogCallback?("Event tap fully started!")
@@ -227,19 +272,31 @@ class EventTapManager {
     func stop() {
         guard isEnabled else { return }
 
+        // Stop primary tap
         if let tap = eventTap {
             CGEvent.tapEnable(tap: tap, enable: false)
             CFMachPortInvalidate(tap)
-            // CFRelease not needed in modern Swift - ARC handles it
             eventTap = nil
         }
 
         if let source = runLoopSource {
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), source, .commonModes)
-            // CFRelease not needed in modern Swift - ARC handles it
             runLoopSource = nil
         }
         
+        // Stop session tap (dual tap)
+        if let sTap = sessionEventTap {
+            CGEvent.tapEnable(tap: sTap, enable: false)
+            CFMachPortInvalidate(sTap)
+            sessionEventTap = nil
+        }
+        
+        if let sSource = sessionRunLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), sSource, .commonModes)
+            sessionRunLoopSource = nil
+        }
+        
+        isHIDTapActive = false
         isEnabled = false
         
         debugLogCallback?("Event tap stopped")
@@ -304,10 +361,16 @@ class EventTapManager {
         // This prevents re-processing of backspaces/text we inject, which causes
         // race conditions and duplicate diacritics in terminal apps
         if event.getIntegerValueField(.eventSourceUserData) == kXKeyEventMarker {
-            debugLogCallback?(" → Skipping XKey-injected event (marker detected)")
-            // Also print directly for debugging
-            debugLogCallback?("MARKER SKIP: type=\(type.rawValue), keyCode=\(event.getIntegerValueField(.keyboardEventKeycode))")
             return Unmanaged.passUnretained(event)
+        }
+
+        // DUAL TAP: Mark this event as seen by HID tap
+        // The session tap checks for this marker to avoid double-processing.
+        // Events from remote desktop never pass through HID tap, so they won't have this marker
+        // and will be processed by the session tap instead.
+        // Only mark when dual tap is active (HID primary + session secondary)
+        if isHIDTapActive {
+            event.setIntegerValueField(.eventSourceUserData, value: kXKeyHIDSeenMarker)
         }
 
         // CRITICAL FIX: Pass through keyUp events IMMEDIATELY with zero delay
@@ -624,6 +687,141 @@ class EventTapManager {
         }
 
         // Consume event by returning nil
+        return nil
+    }
+    
+    // MARK: - Session Event Callback (Dual Tap - Remote Desktop Input)
+    
+    /// Secondary event callback for session-level tap.
+    /// Only processes events NOT seen by the HID tap (i.e., events from remote desktop connections).
+    /// This enables Vietnamese input when the machine is being remoted into.
+    private func sessionEventCallback(
+        proxy: CGEventTapProxy,
+        type: CGEventType,
+        event: CGEvent
+    ) -> Unmanaged<CGEvent>? {
+        // Handle tap disabled event - re-enable session tap
+        if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+            if let sTap = sessionEventTap {
+                CGEvent.tapEnable(tap: sTap, enable: true)
+            }
+            return Unmanaged.passUnretained(event)
+        }
+        
+        // Multi-user session guard (same as HID tap)
+        if !isSessionOnConsole {
+            return Unmanaged.passUnretained(event)
+        }
+        
+        // If suspended (IMKit mode), pass through
+        if isSuspended {
+            return Unmanaged.passUnretained(event)
+        }
+        
+        // Skip events injected by XKey itself
+        let userData = event.getIntegerValueField(.eventSourceUserData)
+        if userData == kXKeyEventMarker {
+            return Unmanaged.passUnretained(event)
+        }
+        
+        // CRITICAL: Skip events already seen by HID tap (deduplication)
+        // Local keyboard events pass through HID tap first and get marked.
+        // Only events from remote desktop (virtual input) lack this marker.
+        if userData == kXKeyHIDSeenMarker {
+            // Restore clean state before passing to downstream apps/utilities
+            // This prevents kXKeyHIDSeenMarker from leaking to other keyboard tools
+            event.setIntegerValueField(.eventSourceUserData, value: 0)
+            return Unmanaged.passUnretained(event)
+        }
+        
+        // --- From here, we're processing a remote desktop event ---
+        debugLogCallback?("[SessionTap] Processing remote desktop event: type=\(type.rawValue), keyCode=\(event.getIntegerValueField(.keyboardEventKeycode))")
+        
+        // Pass through keyUp events (XKey only processes keyDown)
+        if type == .keyUp {
+            return Unmanaged.passUnretained(event)
+        }
+        
+        // Pass through key repeat (except backspace for buffer sync)
+        if type == .keyDown && event.isKeyRepeat {
+            if event.keyCode != VietnameseData.KEY_DELETE {
+                return Unmanaged.passUnretained(event)
+            }
+        }
+        
+        // Check for toggle hotkey (allow remote users to toggle Vietnamese)
+        if let hotkey = toggleHotkey {
+            if hotkey.isModifierOnly {
+                if type == .flagsChanged {
+                    let eventModifiers = ModifierFlags(from: event.flags)
+                    let hasAllRequiredModifiers = hotkey.modifiers.isSubset(of: eventModifiers) &&
+                                                   eventModifiers.intersection([.control, .shift, .option, .command, .function]) == hotkey.modifiers
+                    
+                    if hasAllRequiredModifiers {
+                        if !modifierOnlyState.targetModifiersReached {
+                            modifierOnlyState.targetModifiersReached = true
+                            modifierOnlyState.hasTriggered = false
+                        }
+                        modifierOnlyState.currentModifiers = eventModifiers
+                    } else {
+                        if modifierOnlyState.targetModifiersReached && !modifierOnlyState.hasTriggered {
+                            modifierOnlyState.hasTriggered = true
+                            DispatchQueue.main.async { [weak self] in
+                                self?.onToggleHotkey?()
+                            }
+                        }
+                        modifierOnlyState.targetModifiersReached = false
+                        modifierOnlyState.currentModifiers = eventModifiers
+                    }
+                } else if type == .keyDown {
+                    if modifierOnlyState.targetModifiersReached {
+                        modifierOnlyState.targetModifiersReached = false
+                        modifierOnlyState.hasTriggered = true
+                    }
+                }
+            } else {
+                if type == .keyDown {
+                    let eventModifiers = ModifierFlags(from: event.flags)
+                    if event.keyCode == hotkey.keyCode && eventModifiers == hotkey.modifiers {
+                        DispatchQueue.main.async { [weak self] in
+                            self?.onToggleHotkey?()
+                        }
+                        return nil
+                    }
+                }
+            }
+        }
+        
+        // Overlay probe arming (same as HID tap)
+        if type == .flagsChanged {
+            let flags = event.flags
+            if flags.contains(.maskCommand) || flags.contains(.maskControl) ||
+               flags.contains(.maskAlternate) || flags.contains(.maskSecondaryFn) {
+                OverlayAppDetector.shared.armProbe()
+            }
+        } else if type == .keyDown {
+            let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+            if keyCode == 0x35 || keyCode == 0x24 || keyCode == 0x4C {
+                OverlayAppDetector.shared.armProbeDeferred()
+            } else if event.flags.contains(.maskCommand) {
+                OverlayAppDetector.shared.armProbe()
+            }
+        }
+        
+        // Delegate processing (Vietnamese input engine)
+        guard let delegate = delegate else {
+            return Unmanaged.passUnretained(event)
+        }
+        
+        guard delegate.shouldProcessEvent(event, type: type) else {
+            return Unmanaged.passUnretained(event)
+        }
+        
+        if let processedEvent = delegate.processKeyEvent(event, type: type, proxy: proxy) {
+            return Unmanaged.passUnretained(processedEvent)
+        }
+        
+        // Consume event
         return nil
     }
     

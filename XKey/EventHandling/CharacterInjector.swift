@@ -12,6 +12,7 @@ import Carbon
 // Used to identify events injected by XKey - prevents re-processing by event tap
 // This is critical for avoiding race conditions in terminal apps
 let kXKeyEventMarker: Int64 = 0x584B4559  // "XKEY" in hex
+let kXKeyHIDSeenMarker: Int64 = 0x584B4849  // "XKHI" in hex - marks events seen by HID tap
 
 // MARK: - Injection Method
 // NOTE: InjectionMethod, InjectionDelays, and InjectionMethodInfo are defined in
