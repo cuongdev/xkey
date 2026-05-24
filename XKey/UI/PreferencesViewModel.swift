@@ -22,6 +22,10 @@ class PreferencesViewModel: ObservableObject {
         // Save to SharedSettings (plist file)
         SharedSettings.shared.savePreferences(preferences)
 
+        // Sync app language to standalone UserDefaults key (read at launch before Preferences loads)
+        UserDefaults.standard.set(preferences.appLanguage.rawValue, forKey: "appLanguage")
+        AppLanguage.applyLanguage()
+
         // Apply launch at login setting
         setLaunchAtLogin(preferences.startAtLogin)
     }
