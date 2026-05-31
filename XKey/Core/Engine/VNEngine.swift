@@ -245,6 +245,15 @@ class VNEngine {
         
         let isCaps = isUppercase
 
+        // Adaptive input method: choose the effective input type for THIS keystroke
+        // (boundary translation). Digits route to VNI logic; every other key routes
+        // to Telex. Telex/VNI trigger keys are disjoint, so each keystroke maps to
+        // exactly one method. Downstream code keeps reading a concrete vInputType
+        // (0/1) and never sees the adaptive sentinel (4).
+        if vAdaptiveEnabled {
+            vInputType = vietnameseData.isNumberKey(keyCode) ? 1 : 0
+        }
+
         // Check if number key with shift or has other modifier
         if (vietnameseData.isNumberKey(keyCode) && isUppercase) || hasOtherModifier || isWordBreak(keyCode: keyCode) {
             handleWordBreak(keyCode: keyCode, character: character, isCaps: isCaps)
