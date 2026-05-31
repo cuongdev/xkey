@@ -114,4 +114,30 @@ class VNEngineAdaptiveTests: XCTestCase {
         // Space is always a word break:
         XCTAssertTrue(VNEngine.isWordBreak(character: " ", inputMethod: .adaptive))
     }
+
+    // MARK: - Task 4: alphanumeric / English tokens stay literal
+
+    func testAdaptive_CovidStaysLiteral() {
+        let word = typeAdaptive([
+            ("c", VietnameseData.KEY_C), ("o", VietnameseData.KEY_O), ("v", VietnameseData.KEY_V),
+            ("i", VietnameseData.KEY_I), ("d", VietnameseData.KEY_D),
+            ("1", VietnameseData.KEY_1), ("9", VietnameseData.KEY_9)
+        ])
+        XCTAssertEqual(word, "covid19", "non-Vietnamese token must not get VNI tones")
+    }
+
+    func testAdaptive_Mp3StaysLiteral() {
+        let word = typeAdaptive([
+            ("m", VietnameseData.KEY_M), ("p", VietnameseData.KEY_P), ("3", VietnameseData.KEY_3)
+        ])
+        XCTAssertEqual(word, "mp3")
+    }
+
+    func testAdaptive_ValidVietnameseDigitStillWorks() {
+        // Sanity: a valid syllable + VNI digit still gets the tone (gate must not over-block).
+        // v + i + 1 → ví
+        XCTAssertEqual(typeAdaptive([
+            ("v", VietnameseData.KEY_V), ("i", VietnameseData.KEY_I), ("1", VietnameseData.KEY_1)
+        ]), "ví")
+    }
 }
