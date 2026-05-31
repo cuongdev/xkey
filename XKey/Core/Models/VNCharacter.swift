@@ -442,6 +442,7 @@ enum InputMethod: Int, CaseIterable, Codable {
     case vni = 1
     case simpleTelex1 = 2
     case simpleTelex2 = 3
+    case adaptive = 4
 
     var displayName: String {
         switch self {
@@ -449,6 +450,7 @@ enum InputMethod: Int, CaseIterable, Codable {
         case .vni: return "VNI"
         case .simpleTelex1: return "Simple Telex 1 (w->w, []→[])"
         case .simpleTelex2: return "Simple Telex 2 (w→ư, []→[])"
+        case .adaptive: return "Tự động (Telex + VNI)"
         }
     }
 }

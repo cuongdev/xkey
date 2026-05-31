@@ -55,6 +55,7 @@ class VNEngine {
     
     var vLanguage = 1              // 0: English, 1: Vietnamese
     var vInputType = 0             // 0: Telex, 1: VNI
+    var vAdaptiveEnabled = false   // Adaptive: accept BOTH Telex & VNI keys, decided per keystroke
     var vCodeTable = 0             // 0: Unicode, 1: TCVN3, 2: VNI-Windows
     var vCheckSpelling = 1         // 0: No, 1: Yes
     var vUseModernOrthography = 1  // 0: òa/úy, 1: oà/uý
