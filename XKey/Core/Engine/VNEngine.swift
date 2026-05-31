@@ -1286,14 +1286,14 @@ class VNEngine {
             return true
         }
         
-        // Numbers: only in VNI mode (0-9 are tone marks)
+        // Numbers: tone marks in VNI mode and Adaptive mode (0-9)
         if character.isNumber {
-            return inputMethod == .vni
+            return inputMethod == .vni || inputMethod == .adaptive
         }
-        
-        // Bracket keys: only in Telex mode ([ → ơ, ] → ư)
+
+        // Bracket keys: ơ/ư in Telex mode and Adaptive mode ([ → ơ, ] → ư)
         if character == "[" || character == "]" {
-            return inputMethod == .telex
+            return inputMethod == .telex || inputMethod == .adaptive
         }
         
         // Other characters are not Vietnamese special keys
@@ -1324,9 +1324,10 @@ class VNEngine {
             return true
         }
         
-        // Bracket keys: word break in all modes EXCEPT Telex
+        // Bracket keys: word break in all modes EXCEPT Telex and Adaptive
+        // (in those modes they produce ơ and ư).
         if character == "[" || character == "]" {
-            return inputMethod != .telex
+            return inputMethod != .telex && inputMethod != .adaptive
         }
         
         return false

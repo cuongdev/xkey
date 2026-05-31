@@ -93,4 +93,25 @@ class VNEngineAdaptiveTests: XCTestCase {
         // VNI: d + 9  →  đ
         XCTAssertEqual(typeAdaptive([("d", VietnameseData.KEY_D), ("9", VietnameseData.KEY_9)]), "đ")
     }
+
+    // MARK: - Task 3: static gatekeepers accept adaptive keys
+
+    func testAdaptive_DigitIsSpecialKey() {
+        // Letters are always special; the point is digits must be special in adaptive.
+        XCTAssertTrue(VNEngine.isVietnameseSpecialKey(character: "1", inputMethod: .adaptive))
+        XCTAssertTrue(VNEngine.isVietnameseSpecialKey(character: "9", inputMethod: .adaptive))
+        // Telex modifier letters too:
+        XCTAssertTrue(VNEngine.isVietnameseSpecialKey(character: "s", inputMethod: .adaptive))
+        // Brackets are Telex standalone input → special in adaptive:
+        XCTAssertTrue(VNEngine.isVietnameseSpecialKey(character: "[", inputMethod: .adaptive))
+        XCTAssertTrue(VNEngine.isVietnameseSpecialKey(character: "]", inputMethod: .adaptive))
+    }
+
+    func testAdaptive_BracketIsNotWordBreak() {
+        // In Telex, [ and ] are NOT word breaks (they produce ơ/ư). Same for adaptive.
+        XCTAssertFalse(VNEngine.isWordBreak(character: "[", inputMethod: .adaptive))
+        XCTAssertFalse(VNEngine.isWordBreak(character: "]", inputMethod: .adaptive))
+        // Space is always a word break:
+        XCTAssertTrue(VNEngine.isWordBreak(character: " ", inputMethod: .adaptive))
+    }
 }
