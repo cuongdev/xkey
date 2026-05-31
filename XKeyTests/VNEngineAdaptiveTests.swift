@@ -197,4 +197,53 @@ class VNEngineAdaptiveTests: XCTestCase {
         _ = engine.processBackspace()
         XCTAssertEqual(engine.getCurrentWord(), "", "backspace should clear the single composed char")
     }
+
+    // MARK: - Picker ordering + localization key
+
+    func testAdaptive_IsFirstInAllCases() {
+        // Pickers iterate InputMethod.allCases in declaration order, so adaptive
+        // must be first to appear at the top of the list.
+        XCTAssertEqual(InputMethod.allCases.first, .adaptive)
+    }
+
+    func testAdaptive_RawValueStableForPersistence() {
+        // Reordering the declaration must NOT change the persisted rawValue.
+        XCTAssertEqual(InputMethod.adaptive.rawValue, 4)
+        XCTAssertEqual(InputMethod(rawValue: 4), .adaptive)
+    }
+
+    func testAdaptive_DisplayNameIsLocalizationSourceKey() {
+        // displayName is used as the Localizable.xcstrings key (sourceLanguage = vi).
+        XCTAssertEqual(InputMethod.adaptive.displayName, "Tự nhận kiểu gõ (Telex + VNI)")
+    }
+
+    // MARK: - Behavior edges
+
+    func testAdaptive_MixedModifiers_VniThenTelex() {
+        // a + 1 (VNI sắc → á) then f (Telex huyền) replaces the tone → à
+        XCTAssertEqual(typeAdaptive([
+            ("a", VietnameseData.KEY_A), ("1", VietnameseData.KEY_1), ("f", VietnameseData.KEY_F)
+        ]), "à")
+    }
+
+    func testAdaptive_BracketComposesHornInAdaptive() {
+        // Telex bracket standalone input must still work in adaptive: [ → ơ, ] → ư
+        XCTAssertEqual(typeAdaptive([("[", VietnameseData.KEY_LEFT_BRACKET)]), "ơ")
+        XCTAssertEqual(typeAdaptive([("]", VietnameseData.KEY_RIGHT_BRACKET)]), "ư")
+    }
+
+    func testAdaptive_Uppercase_BothWays() {
+        // Uppercase Á via Telex (A+s) and VNI (A+1)
+        func typeUpper(_ keys: [(Character, UInt16, Bool)]) -> String {
+            engine.reset()
+            engine.vAdaptiveEnabled = true
+            engine.vInputType = 0
+            for (ch, code, up) in keys {
+                _ = engine.processKey(character: ch, keyCode: code, isUppercase: up)
+            }
+            return engine.getCurrentWord()
+        }
+        XCTAssertEqual(typeUpper([("A", VietnameseData.KEY_A, true), ("s", VietnameseData.KEY_S, false)]), "Á")
+        XCTAssertEqual(typeUpper([("A", VietnameseData.KEY_A, true), ("1", VietnameseData.KEY_1, false)]), "Á")
+    }
 }
