@@ -140,4 +140,61 @@ class VNEngineAdaptiveTests: XCTestCase {
             ("v", VietnameseData.KEY_V), ("i", VietnameseData.KEY_I), ("1", VietnameseData.KEY_1)
         ]), "ví")
     }
+
+    // MARK: - Task 5: full equivalence matrix + commit/backspace
+
+    func testAdaptive_EquivalenceMatrix() {
+        // (expected, telexKeys, vniKeys) — each pair must produce `expected` in adaptive mode.
+        let cases: [(String, [(Character, UInt16)], [(Character, UInt16)])] = [
+            ("á", [("a", VietnameseData.KEY_A), ("s", VietnameseData.KEY_S)],
+                  [("a", VietnameseData.KEY_A), ("1", VietnameseData.KEY_1)]),
+            ("à", [("a", VietnameseData.KEY_A), ("f", VietnameseData.KEY_F)],
+                  [("a", VietnameseData.KEY_A), ("2", VietnameseData.KEY_2)]),
+            ("â", [("a", VietnameseData.KEY_A), ("a", VietnameseData.KEY_A)],
+                  [("a", VietnameseData.KEY_A), ("6", VietnameseData.KEY_6)]),
+            ("ê", [("e", VietnameseData.KEY_E), ("e", VietnameseData.KEY_E)],
+                  [("e", VietnameseData.KEY_E), ("6", VietnameseData.KEY_6)]),
+            ("ô", [("o", VietnameseData.KEY_O), ("o", VietnameseData.KEY_O)],
+                  [("o", VietnameseData.KEY_O), ("6", VietnameseData.KEY_6)]),
+            ("ơ", [("o", VietnameseData.KEY_O), ("w", VietnameseData.KEY_W)],
+                  [("o", VietnameseData.KEY_O), ("7", VietnameseData.KEY_7)]),
+            ("ư", [("u", VietnameseData.KEY_U), ("w", VietnameseData.KEY_W)],
+                  [("u", VietnameseData.KEY_U), ("7", VietnameseData.KEY_7)]),
+            ("ă", [("a", VietnameseData.KEY_A), ("w", VietnameseData.KEY_W)],
+                  [("a", VietnameseData.KEY_A), ("8", VietnameseData.KEY_8)]),
+            ("đ", [("d", VietnameseData.KEY_D), ("d", VietnameseData.KEY_D)],
+                  [("d", VietnameseData.KEY_D), ("9", VietnameseData.KEY_9)]),
+        ]
+        for (expected, telex, vni) in cases {
+            XCTAssertEqual(typeAdaptive(telex), expected, "Telex path for \(expected)")
+            XCTAssertEqual(typeAdaptive(vni), expected, "VNI path for \(expected)")
+        }
+    }
+
+    func testAdaptive_WordBreakCommitsThenNewWord() {
+        engine.reset()
+        engine.vAdaptiveEnabled = true
+        engine.vInputType = 0
+        // Type "á" via VNI, commit with space, then start a fresh word via Telex.
+        _ = engine.processKey(character: "a", keyCode: VietnameseData.KEY_A, isUppercase: false)
+        _ = engine.processKey(character: "1", keyCode: VietnameseData.KEY_1, isUppercase: false)
+        XCTAssertEqual(engine.getCurrentWord(), "á")
+        _ = engine.processWordBreak(character: " ")
+        // New word "ô" via Telex
+        _ = engine.processKey(character: "o", keyCode: VietnameseData.KEY_O, isUppercase: false)
+        _ = engine.processKey(character: "o", keyCode: VietnameseData.KEY_O, isUppercase: false)
+        XCTAssertEqual(engine.getCurrentWord(), "ô")
+    }
+
+    func testAdaptive_BackspaceRevertsTone() {
+        engine.reset()
+        engine.vAdaptiveEnabled = true
+        engine.vInputType = 0
+        // "á" via VNI a+1, then backspace removes the tone-bearing char.
+        _ = engine.processKey(character: "a", keyCode: VietnameseData.KEY_A, isUppercase: false)
+        _ = engine.processKey(character: "1", keyCode: VietnameseData.KEY_1, isUppercase: false)
+        XCTAssertEqual(engine.getCurrentWord(), "á")
+        _ = engine.processBackspace()
+        XCTAssertEqual(engine.getCurrentWord(), "", "backspace should clear the single composed char")
+    }
 }
