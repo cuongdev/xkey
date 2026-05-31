@@ -438,19 +438,22 @@ enum CodeTable: Int, CaseIterable, Codable {
 // MARK: - Input Methods
 
 enum InputMethod: Int, CaseIterable, Codable {
+    // NOTE: `allCases` follows declaration order, so `.adaptive` is listed first
+    // to appear at the top of the input-method pickers. Raw values are kept stable
+    // (adaptive = 4) for Codable persistence — do not renumber.
+    case adaptive = 4
     case telex = 0
     case vni = 1
     case simpleTelex1 = 2
     case simpleTelex2 = 3
-    case adaptive = 4
 
     var displayName: String {
         switch self {
+        case .adaptive: return "Tự nhận kiểu gõ (Telex + VNI)"
         case .telex: return "Telex (w→ư, []→ơư)"
         case .vni: return "VNI"
         case .simpleTelex1: return "Simple Telex 1 (w->w, []→[])"
         case .simpleTelex2: return "Simple Telex 2 (w→ư, []→[])"
-        case .adaptive: return "Tự động (Telex + VNI)"
         }
     }
 }
