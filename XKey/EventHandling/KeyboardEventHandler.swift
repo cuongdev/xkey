@@ -304,7 +304,21 @@ class KeyboardEventHandler: EventTapManager.EventTapDelegate {
         if isCurrentAppExcluded() {
             return false
         }
-        
+
+        // Consume a pending injection-method reprobe (armed by focus-moving
+        // Cmd-chords in EventTapManager) before reading the confirmed method,
+        // so the first character typed after Cmd+L/Cmd+T already uses the
+        // address-bar method.
+        // Skip the chord keystroke itself (Cmd still down): the browser hasn't
+        // processed the chord yet, so re-detecting now would read the OLD focus.
+        // Skip when nothing will be processed (Vietnamese off and no English-
+        // mode macros): the method is unused then, the detect would be wasted —
+        // the probe stays armed and is consumed if processing is re-enabled.
+        if type == .keyDown && !event.flags.contains(.maskCommand)
+            && (isVietnameseEnabled || (macroEnabled && macroInEnglishMode)) {
+            AppBehaviorDetector.shared.consumePendingMethodReprobe()
+        }
+
         // Check if injection method is passthrough - bypass all Vietnamese processing
         // This is checked BEFORE Vietnamese mode check because passthrough applies regardless
         let confirmedMethod = AppBehaviorDetector.shared.getConfirmedInjectionMethod()

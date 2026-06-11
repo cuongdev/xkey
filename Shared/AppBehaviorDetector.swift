@@ -824,6 +824,62 @@ class AppBehaviorDetector {
         clearAddressBarCache()
         _lastLoggedRuleMatchKey = ""  // Reset to log rule match after context change
     }
+
+    // MARK: - Method Reprobe (focus-change probe)
+    // Focus-moving Cmd-chords (Cmd+L/Cmd+T → omnibox, Cmd+F/Cmd+K → find or
+    // search field) change the focused element before the async paths
+    // (AXObserver with a ~100ms throttle, mouse-click retries) re-detect the
+    // injection method, so the first characters typed right after the chord
+    // can use a stale method. EventTapManager arms a one-shot reprobe on those
+    // chords; the next PLAIN keyDown consumes it and re-detects synchronously.
+    // No "was a confirmation newer than the arm" shortcut here: async
+    // confirmations can carry a PRE-chord focus snapshot with a post-chord
+    // timestamp (throttled AXObserver delivery, scheduled mouse retries), so
+    // timestamps cannot prove freshness — re-detecting is the only safe call,
+    // and the chord filter keeps it rare.
+
+    /// Timestamp of the last focus-moving chord arm signal (0 = disarmed)
+    private var methodReprobeArmedAt: CFAbsoluteTime = 0
+
+    /// Minimum settle time between the chord and a consuming keystroke.
+    /// A keystroke landing sooner would re-detect against the OLD focused
+    /// element (the browser hasn't processed the chord yet) and pin a stale
+    /// method — in that case the probe stays armed for the next keystroke.
+    private static let methodReprobeSettleTime: CFAbsoluteTime = 0.03
+
+    /// Arm a one-shot injection-method re-detection
+    /// (called on focus-moving Cmd-chords)
+    func armMethodReprobe() {
+        methodReprobeArmedAt = CFAbsoluteTimeGetCurrent()
+    }
+
+    /// Re-detect the injection method on the first plain keystroke after a
+    /// focus-moving Cmd-chord. One-shot. Restricted to browsers — chord-driven
+    /// focus jumps into autocomplete fields (Cmd+L/Cmd+T → omnibox) are a
+    /// browser pattern; other apps keep the existing event-driven paths.
+    func consumePendingMethodReprobe() {
+        guard methodReprobeArmedAt > 0 else { return }
+
+        // Keep the probe armed until the browser had time to move focus.
+        guard CFAbsoluteTimeGetCurrent() - methodReprobeArmedAt > Self.methodReprobeSettleTime else {
+            return
+        }
+
+        methodReprobeArmedAt = 0  // one-shot: consume even if we bail below
+
+        guard let bundleId = getCurrentBundleId(),
+              Self.browserApps.contains(bundleId)
+                || Self.firefoxBasedBrowsers.contains(bundleId)
+                || Self.axAttributeDetectForBrowsers.contains(bundleId) else { return }
+
+        let previous = confirmedInjectionMethod
+        let detected = detectInjectionMethod()
+        setConfirmedInjectionMethod(detected)
+        if let callback = debugLogCallback,
+           detected.description != previous?.description {
+            callback("[Reprobe] \(previous?.description ?? "nil") → \(detected.description)")
+        }
+    }
     
     // MARK: - Cache (only for detect() which is used for UI display)
     // Note: detectInjectionMethod(), findMatchingRule(), and detectIMKitBehavior() 

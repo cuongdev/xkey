@@ -96,6 +96,15 @@ class EventTapManager {
         var hasTriggered: Bool = false
     }
     
+    // MARK: - Method Reprobe Chords
+
+    /// Cmd-chord keycodes that move browser focus into chrome-UI text fields:
+    /// L (0x25) / T (0x11) / N (0x2D) → omnibox, F (0x03) / K (0x28) → find or
+    /// search field. Only these arm the injection-method reprobe — broader
+    /// chords (Cmd+C/V/W/R…) don't move focus there and would only add AX cost
+    /// and sample transitional AX states (e.g. tab teardown after Cmd+W).
+    static let focusMovingChordKeyCodes: Set<Int64> = [0x25, 0x11, 0x2D, 0x03, 0x28]
+
     // MARK: - Delegate Protocol
 
     protocol EventTapDelegate: AnyObject {
@@ -675,6 +684,12 @@ class EventTapManager {
             } else if event.flags.contains(.maskCommand) {
                 // keyDown with Cmd — potential overlay shortcut (Cmd+Space, Cmd+K, etc.)
                 OverlayAppDetector.shared.armProbe()
+                // Focus-moving chords (Cmd+L/T/N/F/K) can land focus in a
+                // browser address bar before async detection — arm a one-shot
+                // injection-method reprobe for the next plain keystroke.
+                if EventTapManager.focusMovingChordKeyCodes.contains(keyCode) {
+                    AppBehaviorDetector.shared.armMethodReprobe()
+                }
             }
         }
 
@@ -815,9 +830,12 @@ class EventTapManager {
                 OverlayAppDetector.shared.armProbeDeferred()
             } else if event.flags.contains(.maskCommand) {
                 OverlayAppDetector.shared.armProbe()
+                if EventTapManager.focusMovingChordKeyCodes.contains(keyCode) {
+                    AppBehaviorDetector.shared.armMethodReprobe()
+                }
             }
         }
-        
+
         // Delegate processing (Vietnamese input engine)
         guard let delegate = delegate else {
             return Unmanaged.passUnretained(event)
