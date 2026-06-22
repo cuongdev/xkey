@@ -174,6 +174,9 @@ class VietnameseData {
         [KEY_N, KEY_G],
         [KEY_K, KEY_H],
         [KEY_G, KEY_H],
+        // Initial cluster 'kr' for ethnic-minority place names (e.g. Krông Ana,
+        // Krông Búk, Krông Pắc). Not a standard Vietnamese onset.
+        [KEY_K, KEY_R],
         [KEY_G],
         [KEY_C],
         [KEY_Q],
@@ -203,6 +206,11 @@ class VietnameseData {
     
     let endConsonantTable: [[UInt16]] = [
         [KEY_T], [KEY_P], [KEY_C], [KEY_N], [KEY_M],
+        // Literal final 'k' for ethnic-minority / Central-Highlands place names
+        // (e.g. Đắk Lắk, Krông Búk, M'Đrắk). 'k' is not a standard Vietnamese final;
+        // the tone-restriction (only sắc/nặng) and the circumflex guard in
+        // checkSpelling() / handleMarkKey() keep it from over-accepting foreign words.
+        [KEY_K],
         // Quick end consonant entries (g→ng, k→ch, h→nh)
         [KEY_G | VietnameseData.END_CONSONANT_MASK],
         [KEY_K | VietnameseData.END_CONSONANT_MASK],
@@ -381,7 +389,10 @@ class VietnameseData {
             [KEY_A, KEY_C],
             [KEY_A, KEY_I],
             [KEY_A, KEY_O],
-            [KEY_A, KEY_C, KEY_H], [KEY_A, KEY_K | 0x4000]
+            [KEY_A, KEY_C, KEY_H], [KEY_A, KEY_K | 0x4000],
+            // Literal final 'k' (ethnic place names: Đắk, Lắk, M'Đrắk). Allows a
+            // tone typed AFTER the 'k' (e.g. "ddawks" → đắk) to find its vowel.
+            [KEY_A, KEY_K]
         ],
         KEY_O: [
             [KEY_O, KEY_O, KEY_N, KEY_G], [KEY_O, KEY_O, KEY_G | 0x4000],
@@ -439,6 +450,8 @@ class VietnameseData {
             [KEY_U, KEY_N],
             [KEY_U, KEY_M],
             [KEY_U, KEY_P],
+            // Literal final 'k' (ethnic place names: Búk in Krông Búk).
+            [KEY_U, KEY_K],
             [KEY_U]
         ],
         KEY_Y: [

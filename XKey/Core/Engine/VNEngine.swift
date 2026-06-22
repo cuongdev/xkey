@@ -858,8 +858,9 @@ class VNEngine {
                         (keyCode == VietnameseData.KEY_2 || keyCode == VietnameseData.KEY_3 || keyCode == VietnameseData.KEY_4)
                     
                     if isMarkFRX {
-                        if charset[1] == VietnameseData.KEY_C || charset[1] == VietnameseData.KEY_T {
-                            logCallback?("  → Rejected: mark FRX with end consonant C/T")
+                        if charset[1] == VietnameseData.KEY_C || charset[1] == VietnameseData.KEY_T ||
+                           charset[1] == VietnameseData.KEY_K {
+                            logCallback?("  → Rejected: mark FRX with end consonant C/T/K")
                             isCorrect = false
                         } else if charset.count > 2 && charset[2] == VietnameseData.KEY_T {
                             logCallback?("  → Rejected: mark FRX with end consonant T")
@@ -2128,7 +2129,9 @@ class VNEngine {
                 spellingOK = false
             }
             
-            // Limit: end consonant "ch", "t" cannot use with "~", "`", "?"
+            // Limit: stop end consonants "ch", "t", "k" cannot use with "~", "`", "?"
+            // (stop finals only take sắc/nặng). "k" is the ethnic-minority final
+            // (Đắk, Lắk) — same restriction as the standard stop finals.
             if spellingOK {
                 if index >= 3 &&
                    chr(Int(index) - 1) == VietnameseData.KEY_H &&
@@ -2141,7 +2144,9 @@ class VNEngine {
                     if !hasMark1 && !hasMark5 && hasAnyMark {
                         spellingOK = false
                     }
-                } else if index >= 2 && chr(Int(index) - 1) == VietnameseData.KEY_T {
+                } else if index >= 2 &&
+                          (chr(Int(index) - 1) == VietnameseData.KEY_T ||
+                           chr(Int(index) - 1) == VietnameseData.KEY_K) {
                     let vowelData = typingWord[Int(index) - 2]
                     let hasMark1 = (vowelData & VNEngine.MARK1_MASK) != 0
                     let hasMark5 = (vowelData & VNEngine.MARK5_MASK) != 0
@@ -2149,6 +2154,17 @@ class VNEngine {
                     if !hasMark1 && !hasMark5 && hasAnyMark {
                         spellingOK = false
                     }
+                }
+            }
+
+            // Ethnic-minority final 'k' (Đắk/Lắk/Búk) only pairs with a plain or
+            // breve (ă) vowel, never a circumflex (â/ê/ô). A circumflex vowel
+            // before 'k' means a foreign word (cowork→cổk, network→netwổk) → reject
+            // so it stays literal / is handled by English detection.
+            if spellingOK && index >= 2 && chr(Int(index) - 1) == VietnameseData.KEY_K {
+                let vowelData = typingWord[Int(index) - 2]
+                if (vowelData & VNEngine.TONE_MASK) != 0 {
+                    spellingOK = false
                 }
             }
         } else {

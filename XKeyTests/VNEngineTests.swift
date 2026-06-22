@@ -2726,6 +2726,181 @@ class VNEngineTests: XCTestCase {
         XCTAssertEqual(result.backspaceCount, 0)
         XCTAssertTrue(result.newCharacters.isEmpty)
     }
+
+    // MARK: - Ethnic-minority / Central-Highlands place names (Đắk Lắk, Krông…)
+
+    /// Telex composition for special toponyms. Helper resets + feeds keystrokes.
+    private func typeTelex(_ s: String) -> String {
+        engine.reset()
+        for ch in s {
+            let kc = VietnameseData.keyCode(for: ch) ?? 0
+            _ = engine.processKey(character: ch, keyCode: kc, isUppercase: false)
+        }
+        return engine.getCurrentWord()
+    }
+
+    /// P1: final 'k' with breve/tone — the reported "ddawks → đăks" bug.
+    func testPlaceNames_FinalK_Compose() {
+        // Breve + sắc on final k (Đắk, Lắk, M'Đrắk tail)
+        XCTAssertEqual(typeTelex("ddawks"), "đắk", "ddawks → đắk (Đắk)")
+        XCTAssertEqual(typeTelex("lawks"), "lắk", "lawks → lắk (Lắk)")
+        // Bare breve + k (no tone) must also compose
+        XCTAssertEqual(typeTelex("ddawk"), "đăk", "ddawk → đăk (breve + k)")
+        // Sắc on a plain vowel + final k (Búk in Krông Búk)
+        XCTAssertEqual(typeTelex("busk"), "búk", "busk → búk (Búk)")
+    }
+
+    /// P2: 'kr' initial cluster (Krông Ana/Búk/Pắc…)
+    func testPlaceNames_KrInitial_Compose() {
+        XCTAssertEqual(typeTelex("kroong"), "krông", "kroong → krông (Krông)")
+        XCTAssertEqual(typeTelex("kroongf"), "krồng", "kroongf → krồng (tone on Krông)")
+    }
+
+    /// Regression: standard stop/nasal finals must be unaffected by the final-k work.
+    func testPlaceNames_StandardFinals_Regression() {
+        XCTAssertEqual(typeTelex("bawts"), "bắt", "bawts → bắt (final t still works)")
+        XCTAssertEqual(typeTelex("nawngs"), "nắng", "nawngs → nắng (final ng still works)")
+        XCTAssertEqual(typeTelex("toans"), "toán", "toans → toán (unaffected)")
+        XCTAssertEqual(typeTelex("vieejt"), "việt", "vieejt → việt (unaffected)")
+    }
+
+    /// English-detection (LIVE raw-input path): 'kr' onset no longer blocks Krông.
+    /// Note: the whole-word `isDefinitelyEnglish` helper is currently unwired, so we
+    /// assert the path that actually gates typing (`startsWithImpossibleVietnameseCluster`
+    /// / `isDefinitelyNotVietnameseForRawInput`).
+    func testPlaceNames_EnglishDetection_KrInitial() {
+        XCTAssertFalse("krông".startsWithImpossibleVietnameseCluster(),
+                       "krông onset must not be flagged impossible")
+        XCTAssertFalse("kroong".isDefinitelyNotVietnameseForRawInput(),
+                       "raw 'kroong' (→ krông) must not be blocked as non-Vietnamese")
+    }
+
+    /// Diacritic-free toponyms (Pleiku, Đắk Glong/Glei): no tone keys → the letters
+    /// pass through literally even though the onset is "impossible" Vietnamese.
+    /// These need no engine change; documenting the behaviour so it can't regress.
+    func testPlaceNames_DiacriticFree_PassThrough() {
+        XCTAssertEqual(typeTelex("pleiku"), "pleiku", "Pleiku types literally")
+        XCTAssertEqual(typeTelex("glong"), "glong", "Đắk Glong: 'glong' literal")
+        XCTAssertEqual(typeTelex("glei"), "glei", "Đắk Glei: 'glei' literal")
+        // Names with a Telex tone letter (Ea Kar, Cư M'gar) follow normal Telex
+        // escaping: a lone 'r' is hỏi, so the literal 'r' is typed as "rr".
+        XCTAssertEqual(typeTelex("kar"), "kả", "lone 'r' is the hỏi tone (standard Telex)")
+        XCTAssertEqual(typeTelex("karr"), "kar", "double 'r' escapes to a literal final r (Kar)")
+    }
+
+    /// REVIEW: VNI parity — final-k must work with VNI tone keys (1-5), both when the
+    /// tone is typed after the 'k' (vowelForMarkTable path) and before it.
+    func testPlaceNames_VNI_FinalK() {
+        func vni(_ seq: [(Character, UInt16)]) -> String {
+            engine.reset()
+            engine.vInputType = 1
+            for (ch, kc) in seq {
+                _ = engine.processKey(character: ch, keyCode: kc, isUppercase: false)
+            }
+            return engine.getCurrentWord()
+        }
+        let D = VietnameseData.KEY_D, A = VietnameseData.KEY_A, K = VietnameseData.KEY_K
+        let L = VietnameseData.KEY_L
+        let N9 = VietnameseData.KEY_9, N8 = VietnameseData.KEY_8, N1 = VietnameseData.KEY_1
+        // đắk, sắc (1) AFTER k — exercises the vowelForMarkTable fix in VNI
+        XCTAssertEqual(vni([("d",D),("9",N9),("a",A),("8",N8),("k",K),("1",N1)]), "đắk",
+                       "VNI d9a8k1 → đắk (tone after k)")
+        // đắk, sắc before k
+        XCTAssertEqual(vni([("d",D),("9",N9),("a",A),("8",N8),("1",N1),("k",K)]), "đắk",
+                       "VNI d9a81k → đắk (tone before k)")
+        // lắk
+        XCTAssertEqual(vni([("l",L),("a",A),("8",N8),("k",K),("1",N1)]), "lắk",
+                       "VNI la8k1 → lắk")
+    }
+
+    /// REVIEW: uppercase — "Đắk Lắk" is a proper noun, always capitalised.
+    func testPlaceNames_Uppercase() {
+        func typeCaps(_ seq: [(Character, UInt16, Bool)]) -> String {
+            engine.reset()
+            for (ch, kc, up) in seq {
+                _ = engine.processKey(character: ch, keyCode: kc, isUppercase: up)
+            }
+            return engine.getCurrentWord()
+        }
+        let D = VietnameseData.KEY_D, A = VietnameseData.KEY_A, W = VietnameseData.KEY_W
+        let K = VietnameseData.KEY_K, S = VietnameseData.KEY_S, L = VietnameseData.KEY_L
+        // "Đắk": D D a w k s with the two D's uppercase
+        XCTAssertEqual(typeCaps([("D",D,true),("d",D,true),("a",A,false),("w",W,false),
+                                 ("k",K,false),("s",S,false)]), "Đắk", "Caps DDawks → Đắk")
+        // "Lắk": L uppercase
+        XCTAssertEqual(typeCaps([("L",L,true),("a",A,false),("w",W,false),
+                                 ("k",K,false),("s",S,false)]), "Lắk", "Caps Lawks → Lắk")
+    }
+
+    /// REVIEW: a tone letter after vowel+k behaves like the existing vowel+t case
+    /// (cats→cát). Final-k introduces NO new English-handling class; English words are
+    /// handled uniformly by auto-restore / the user dictionary, same as before.
+    /// REVIEW: real usage — "Đắk Lắk" typed as two space-separated words. The word
+    /// break must commit the first word and the second must still compose.
+    func testPlaceNames_MultiWord_DakLak() {
+        engine.reset()
+        for ch in "ddawks" {
+            let kc = VietnameseData.keyCode(for: ch) ?? 0
+            _ = engine.processKey(character: ch, keyCode: kc, isUppercase: false)
+        }
+        XCTAssertEqual(engine.getCurrentWord(), "đắk", "first word composes")
+        _ = engine.processWordBreak(character: " ")
+        for ch in "lawks" {
+            let kc = VietnameseData.keyCode(for: ch) ?? 0
+            _ = engine.processKey(character: ch, keyCode: kc, isUppercase: false)
+        }
+        XCTAssertEqual(engine.getCurrentWord(), "lắk", "second word composes after word break")
+    }
+
+    /// COVERAGE: Vietnamese words ADJACENT to the final-k / Kr changes must be
+    /// unaffected. Breve + standard stop final (same shape as Đắk but valid finals
+    /// c/t/p), -ch words (the masked quick-end [V, K|0x4000] table neighbours must
+    /// still resolve), and single-'k' initials (the new [K,R] cluster must not
+    /// shadow a plain 'k').
+    func testFinalK_VietnameseAdjacent_Unaffected() {
+        // breve + standard stop finals
+        XCTAssertEqual(typeTelex("bawcs"), "bắc")
+        XCTAssertEqual(typeTelex("mawcj"), "mặc")
+        XCTAssertEqual(typeTelex("tawts"), "tắt")
+        XCTAssertEqual(typeTelex("gawpj"), "gặp")
+        XCTAssertEqual(typeTelex("bawps"), "bắp")
+        // -ch words
+        XCTAssertEqual(typeTelex("sachs"), "sách")
+        XCTAssertEqual(typeTelex("cachs"), "cách")
+        XCTAssertEqual(typeTelex("eechs"), "ếch")
+        XCTAssertEqual(typeTelex("lichj"), "lịch")
+        XCTAssertEqual(typeTelex("ichs"), "ích")
+        // single-'k' initials (not shadowed by the new [K,R] cluster)
+        XCTAssertEqual(typeTelex("keos"), "kéo")
+        XCTAssertEqual(typeTelex("kim"), "kim")
+        XCTAssertEqual(typeTelex("ker"), "kẻ")
+        XCTAssertEqual(typeTelex("kys"), "ký")
+    }
+
+    /// COVERAGE: English '-k' words whose pre-final consonant is NOT a Telex tone
+    /// key stay literal (the cluster makes the ending invalid). 'kr' English words
+    /// also stay literal — the kr onset is now allowed, but their finals are not.
+    func testFinalK_EnglishConsonantK_NotToned() {
+        for (input, expected) in [("back","back"), ("rock","rock"), ("milk","milk"),
+                                  ("talk","talk"), ("pink","pink"), ("think","think"),
+                                  ("krill","krill")] {
+            XCTAssertEqual(typeTelex(input), expected, "\(input) must stay literal")
+        }
+    }
+
+    /// KNOWN / PRE-EXISTING: English words with a Telex tone letter (s=sắc, f=huyền)
+    /// BEFORE the final get toned regardless of the final-k change — inherent Telex,
+    /// the same as "cats"→"cát". The tone is applied on the open vowel before 'k' is
+    /// typed; the final-k change only marks the result as a valid spelling (affects
+    /// auto-restore eligibility, not the visible output). Locked here as a regression
+    /// guard so any future change to this behaviour is intentional.
+    func testFinalK_EnglishToneLetter_PreExisting() {
+        XCTAssertEqual(typeTelex("cats"), "cát")   // baseline: existing final-t
+        XCTAssertEqual(typeTelex("desk"), "dék")   // s = sắc applied before k
+        XCTAssertEqual(typeTelex("disk"), "dík")
+        XCTAssertEqual(typeTelex("task"), "ták")
+        XCTAssertEqual(typeTelex("oaks"), "oák")   // bare vowel + k + s
+    }
 }
 
 

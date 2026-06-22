@@ -124,8 +124,9 @@ extension String {
         // ========================================
         // R-clusters (consonant + R) - Vietnamese only has "tr", exclude it
         // NOTE: "yr" is EXCLUDED because 'y' is a vowel in Vietnamese, not a consonant
+        // NOTE: "kr" is EXCLUDED for ethnic-minority place names (Krông Ana/Búk/Pắc)
         // ========================================
-        "br", "cr", "dr", "fr", "gr", "hr", "jr", "kr", "lr", "mr", "nr",
+        "br", "cr", "dr", "fr", "gr", "hr", "jr", "lr", "mr", "nr",
         "pr", "rr", "sr", "vr", "wr", "xr", "zr",
         
         // ========================================
