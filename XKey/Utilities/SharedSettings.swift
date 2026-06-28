@@ -38,6 +38,7 @@ enum SharedSettingsKey: String {
     case capitalizeOnlyAfterSpace = "XKey.capitalizeOnlyAfterSpace"
     case restoreIfWrongSpelling = "XKey.restoreIfWrongSpelling"
     case instantRestoreOnWrongSpelling = "XKey.instantRestoreOnWrongSpelling"
+    case skipRestoreForUppercaseVietnameseAbbreviations = "XKey.skipRestoreForUppercaseVietnameseAbbreviations"
 
     case customConsonantEnabled = "XKey.customConsonantEnabled"
     case customConsonants = "XKey.customConsonants"
@@ -469,6 +470,14 @@ class SharedSettings {
         get { readBool(forKey: SharedSettingsKey.instantRestoreOnWrongSpelling.rawValue) }
         set {
             writeBool(newValue, forKey: SharedSettingsKey.instantRestoreOnWrongSpelling.rawValue)
+            notifySettingsChanged()
+        }
+    }
+
+    var skipRestoreForUppercaseVietnameseAbbreviations: Bool {
+        get { readBool(forKey: SharedSettingsKey.skipRestoreForUppercaseVietnameseAbbreviations.rawValue) }
+        set {
+            writeBool(newValue, forKey: SharedSettingsKey.skipRestoreForUppercaseVietnameseAbbreviations.rawValue)
             notifySettingsChanged()
         }
     }
@@ -1425,6 +1434,7 @@ class SharedSettings {
         prefs.capitalizeOnlyAfterSpace = capitalizeOnlyAfterSpace
         prefs.restoreIfWrongSpelling = restoreIfWrongSpelling
         prefs.instantRestoreOnWrongSpelling = instantRestoreOnWrongSpelling
+        prefs.skipRestoreForUppercaseVietnameseAbbreviations = skipRestoreForUppercaseVietnameseAbbreviations
 
         // Custom consonants (2-prop: enabled + list)
         prefs.customConsonantEnabled = customConsonantEnabled
@@ -1604,6 +1614,7 @@ class SharedSettings {
         capitalizeOnlyAfterSpace = prefs.capitalizeOnlyAfterSpace
         restoreIfWrongSpelling = prefs.restoreIfWrongSpelling
         instantRestoreOnWrongSpelling = prefs.instantRestoreOnWrongSpelling
+        skipRestoreForUppercaseVietnameseAbbreviations = prefs.skipRestoreForUppercaseVietnameseAbbreviations
 
         customConsonantEnabled = prefs.customConsonantEnabled
         customConsonants = prefs.customConsonants

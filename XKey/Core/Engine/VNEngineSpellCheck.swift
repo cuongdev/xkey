@@ -58,6 +58,39 @@ extension VNEngine {
         return false
     }
 
+    private func isDefaultDStrokeAbbreviation(_ word: String) -> Bool {
+        guard word.count == 2,
+              word.first == "Đ",
+              let lastChar = word.last,
+              String(lastChar) == String(lastChar).uppercased(),
+              let lastKey = VietnameseData.keyCode(for: Character(String(lastChar).lowercased())) else {
+            return false
+        }
+
+        return vietnameseData.isConsonant(lastKey)
+    }
+
+    private func isUppercaseVietnameseMarkedAbbreviation(_ word: String) -> Bool {
+        let characters = Array(word)
+        guard characters.count >= 2,
+              characters.allSatisfy({ $0.isLetter && String($0) == String($0).uppercased() }),
+              let first = characters.first else {
+            return false
+        }
+
+        return isVietnameseMarkedLetter(first)
+    }
+
+    private func isVietnameseMarkedLetter(_ character: Character) -> Bool {
+        let text = String(character)
+        if text == "Đ" || text == "đ" {
+            return true
+        }
+
+        let folded = text.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "vi_VN"))
+        return text.lowercased() != folded.lowercased()
+    }
+
     /// Validate if a given word string is a valid Vietnamese word
     /// This is used for checking words from Accessibility API
     func checkWordSpelling(word: String) -> Bool {
@@ -91,15 +124,19 @@ extension VNEngine {
         }
 
         // Proper-name abbreviations like ĐN/ĐL are valid short forms even though
-        // they are not dictionary words. Only uppercase abbreviations bypass restore;
-        // lowercase đn/đl still follow normal spell-check/restore behavior.
-        if word.count == 2,
-           word.first == "Đ",
-           let lastChar = word.last,
-           String(lastChar) == String(lastChar).uppercased(),
-           let lastKey = VietnameseData.keyCode(for: Character(String(lastChar).lowercased())),
-           vietnameseData.isConsonant(lastKey) {
+        // they are not dictionary words. Keep the Đ + uppercase consonant case enabled
+        // by default because DD→Đ has a high-risk raw restore path (DDN/DDL).
+        if isDefaultDStrokeAbbreviation(word) {
             logCallback?("📖 checkWordSpelling: SKIPPED (uppercase d-stroke abbreviation), word='\(word)'")
+            return true
+        }
+
+        // Optional broader rule: all-caps abbreviations that start with a Vietnamese
+        // marked letter (ÂT, ÔM, ỨH, ...) can also skip restore, but default is OFF
+        // to avoid broad false negatives in spell checking.
+        if vSkipRestoreForUppercaseVietnameseAbbreviations == 1,
+           isUppercaseVietnameseMarkedAbbreviation(word) {
+            logCallback?("📖 checkWordSpelling: SKIPPED (uppercase Vietnamese abbreviation), word='\(word)'")
             return true
         }
 

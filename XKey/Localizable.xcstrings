@@ -9233,6 +9233,390 @@
           }
         }
       }
+    },
+    "Bỏ qua viết tắt IN HOA bắt đầu bằng chữ Việt có dấu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip ALL-CAPS abbreviations that start with a marked Vietnamese letter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳过以带声调越南语字母开头的全大写缩写"
+          }
+        }
+      }
+    },
+    "Nếu bật: các viết tắt như ÂT, ÔM, ỨH sẽ không bị khôi phục về phím gõ thô. Trường hợp ĐN/ĐL luôn được giữ kể cả khi tuỳ chọn này tắt.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If enabled: abbreviations such as ÂT, ÔM, and ỨH will not be restored to raw keystrokes. ĐN/ĐL are always preserved even when this option is off."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用时：ÂT、ÔM、ỨH 等缩写不会被恢复为原始按键。即使关闭此选项，ĐN/ĐL 也始终会保留。"
+          }
+        }
+      }
+    },
+    "macOS Text Replacements đang trống": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS Text Replacements is empty"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS 文本替换为空"
+          }
+        }
+      }
+    },
+    "Không có mục mới để nhập": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No new items to import"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有可导入的新项目"
+          }
+        }
+      }
+    },
+    "Không có macro nào đang bật để export": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No enabled macros to export"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有已启用的宏可导出"
+          }
+        }
+      }
+    },
+    "Không thể tạo file .plist": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to create .plist file"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法创建 .plist 文件"
+          }
+        }
+      }
+    },
+    "Lưu file .plist rồi kéo vào System Settings > Keyboard > Text Replacements": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the .plist file, then drag it into System Settings > Keyboard > Text Replacements"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存 .plist 文件，然后将其拖入“系统设置”>“键盘”>“文本替换”"
+          }
+        }
+      }
+    },
+    "Nhập từ file…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import from file…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从文件导入…"
+          }
+        }
+      }
+    },
+    "Xuất ra file…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export to file…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出到文件…"
+          }
+        }
+      }
+    },
+    "Nhập từ Text Replacements": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import from Text Replacements"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从文本替换导入"
+          }
+        }
+      }
+    },
+    "Đồng bộ sang Text Replacements…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync to Text Replacements…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同步到文本替换…"
+          }
+        }
+      }
+    },
+    "Nhập / Xuất": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import / Export"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入 / 导出"
+          }
+        }
+      }
+    },
+    "Đồng bộ macro sang Text Replacements": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync macros to Text Replacements"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将宏同步到文本替换"
+          }
+        }
+      }
+    },
+    "Để dùng macro trên iPhone/iPad qua iCloud của Apple.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use macros on iPhone/iPad via Apple iCloud."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过 Apple iCloud 在 iPhone/iPad 上使用宏。"
+          }
+        }
+      }
+    },
+    "Export file .plist": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export .plist file"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出 .plist 文件"
+          }
+        }
+      }
+    },
+    "Mở Text Replacements": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Text Replacements"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开文本替换"
+          }
+        }
+      }
+    },
+    "Trong pane Keyboard, bấm nút “Text Replacements…”.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the Keyboard pane, click “Text Replacements…”."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“键盘”面板中，点击“文本替换…”。"
+          }
+        }
+      }
+    },
+    "Sau khi Export, file .plist hiện sẵn trong Finder. Kéo file đó thả vào danh sách trong cửa sổ Text Replacements.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After export, the .plist file is shown in Finder. Drag it into the list in the Text Replacements window."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出后，.plist 文件会在 Finder 中显示。将该文件拖入“文本替换”窗口中的列表。"
+          }
+        }
+      }
+    },
+    "Trùng từ viết tắt sẽ tạo bản đôi. Đừng đẩy hàng nghìn macro một lần — macOS dễ lỗi ở số lượng lớn.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate shortcuts will create duplicate entries. Do not push thousands of macros at once — macOS can fail with very large batches."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重复的缩写会创建重复项。不要一次同步数千个宏——macOS 在大量数据时容易出错。"
+          }
+        }
+      }
+    },
+    "Chỉ viết hoa khi sau dấu câu có dấu cách": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only capitalize when punctuation is followed by a space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在标点后有空格时才自动大写"
+          }
+        }
+      }
+    },
+    "Nếu bật: chỉ viết hoa sau \\\". ? !\\\" khi theo sau là dấu cách (vd \\\"google.com\\\", \\\"3.14\\\", \\\"file.txt\\\" không bị viết hoa). Xuống dòng vẫn luôn viết hoa. Nếu tắt: viết hoa ngay sau dấu câu kể cả khi không có dấu cách.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If enabled: only capitalize after “. ? !” when followed by a space (for example, “google.com”, “3.14”, and “file.txt” will not be capitalized). New lines are still always capitalized. If disabled: capitalize immediately after punctuation even without a space."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用时：仅在“. ? !”后面跟着空格时才自动大写（例如“google.com”、“3.14”、“file.txt”不会被大写）。换行后仍会始终大写。关闭时：即使标点后没有空格，也会立即大写。"
+          }
+        }
+      }
+    },
+    "BẬT khi máy này là máy đích (machine B) — máy đang bị remote control bởi Jump Desktop, AnyDesk, TeamViewer, RustDesk, v.v.\n\nKhi BẬT: XKey luôn lắng nghe keyboard events từ remote desktop daemon (bypass HID tap). Cho phép gõ tiếng Việt bình thường trên máy B khi máy A disable XKey.\n\nĐể TẮT khi máy A disable XKey và bạn muốn gõ tiếng Việt trực tiếp trên máy B.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable when this Mac is the target machine (machine B) — the machine being remotely controlled by Jump Desktop, AnyDesk, TeamViewer, RustDesk, etc.\n\nWhen enabled: XKey always listens for keyboard events from the remote desktop daemon (bypassing the HID tap). This allows normal Vietnamese typing on machine B when XKey is disabled on machine A.\n\nLeave disabled when XKey is disabled on machine A and you want to type Vietnamese directly on machine B."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当这台 Mac 是目标机器（机器 B）时启用——即由 Jump Desktop、AnyDesk、TeamViewer、RustDesk 等远程控制的机器。\n\n启用时：XKey 会始终监听来自远程桌面守护进程的键盘事件（绕过 HID tap）。当机器 A 禁用 XKey 时，仍可在机器 B 上正常输入越南语。\n\n当机器 A 禁用 XKey 且你想直接在机器 B 上输入越南语时，请保持关闭。"
+          }
+        }
+      }
+    },
+    "Dành cho máy A (máy đang điều khiển). BẬT khi máy B không có bộ gõ tiếng Việt.\n\nKhi BẬT: XKey inject tiếng Việt qua clipboard paste (Cmd+V / Ctrl+V).\n\nTương thích (thử nghiệm):\n• ✓ Jump Desktop — gõ chậm (~1 giây / từ) hoạt động ổn định\n• ✓ AnyDesk, Parallels, VMware Fusion, Apple Remote Desktop — tương tự Jump Desktop\n• ✗ RustDesk — KHÔNG hỗ trợ (strict-check HID modifier state). Dùng manual Cmd+C/Ctrl+V.\n• ⚠ TeamViewer, Microsoft RDC — chưa kiểm thử kỹ\n\nYêu cầu: Bật đồng bộ clipboard trong ứng dụng remote desktop.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For machine A (the controlling machine). Enable when machine B does not have a Vietnamese input method.\n\nWhen enabled: XKey injects Vietnamese text through clipboard paste (Cmd+V / Ctrl+V).\n\nCompatibility (experimental):\n• ✓ Jump Desktop — slow typing (~1 second / word) works reliably\n• ✓ AnyDesk, Parallels, VMware Fusion, Apple Remote Desktop — similar to Jump Desktop\n• ✗ RustDesk — NOT supported (strict HID modifier-state checks). Use manual Cmd+C/Ctrl+V.\n• ⚠ TeamViewer, Microsoft RDC — not thoroughly tested\n\nRequirement: enable clipboard sync in the remote desktop app."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用于机器 A（控制端机器）。当机器 B 没有越南语输入法时启用。\n\n启用时：XKey 通过剪贴板粘贴（Cmd+V / Ctrl+V）注入越南语文本。\n\n兼容性（实验性）：\n• ✓ Jump Desktop — 慢速输入（约 1 秒 / 词）运行稳定\n• ✓ AnyDesk、Parallels、VMware Fusion、Apple Remote Desktop — 类似 Jump Desktop\n• ✗ RustDesk — 不支持（严格检查 HID 修饰键状态）。请手动使用 Cmd+C/Ctrl+V。\n• ⚠ TeamViewer、Microsoft RDC — 尚未充分测试\n\n要求：在远程桌面应用中启用剪贴板同步。"
+          }
+        }
+      }
+    },
+    "Nếu bật: chỉ viết hoa sau \". ? !\" khi theo sau là dấu cách (vd \"google.com\", \"3.14\", \"file.txt\" không bị viết hoa). Xuống dòng vẫn luôn viết hoa. Nếu tắt: viết hoa ngay sau dấu câu kể cả khi không có dấu cách.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If enabled: only capitalize after “. ? !” when followed by a space (for example, “google.com”, “3.14”, and “file.txt” will not be capitalized). New lines are still always capitalized. If disabled: capitalize immediately after punctuation even without a space."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用时：仅在“. ? !”后面跟着空格时才自动大写（例如“google.com”、“3.14”、“file.txt”不会被大写）。换行后仍会始终大写。关闭时：即使标点后没有空格，也会立即大写。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

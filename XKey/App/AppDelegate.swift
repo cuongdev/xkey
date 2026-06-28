@@ -599,6 +599,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             upperCaseFirstChar: preferences.upperCaseFirstChar,
             capitalizeOnlyAfterSpace: preferences.capitalizeOnlyAfterSpace,
             restoreIfWrongSpelling: preferences.restoreIfWrongSpelling,
+            skipRestoreForUppercaseVietnameseAbbreviations: preferences.skipRestoreForUppercaseVietnameseAbbreviations,
             customConsonants: preferences.customConsonantEnabled ? preferences.customConsonants : "",
             macroEnabled: preferences.macroEnabled,
             macroInEnglishMode: preferences.macroInEnglishMode,

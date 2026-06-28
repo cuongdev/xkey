@@ -84,6 +84,10 @@ class KeyboardEventHandler: EventTapManager.EventTapDelegate {
     @Published var restoreIfWrongSpelling: Bool = true {
         didSet { updateEngineSettings() }
     }
+
+    @Published var skipRestoreForUppercaseVietnameseAbbreviations: Bool = false {
+        didSet { updateEngineSettings() }
+    }
     
     @Published var customConsonants: String = "" {
         didSet { updateEngineSettings() }
@@ -731,6 +735,7 @@ class KeyboardEventHandler: EventTapManager.EventTapDelegate {
         settings.upperCaseFirstChar = upperCaseFirstChar
         settings.capitalizeOnlyAfterSpace = capitalizeOnlyAfterSpace
         settings.restoreIfWrongSpelling = restoreIfWrongSpelling
+        settings.skipRestoreForUppercaseVietnameseAbbreviations = skipRestoreForUppercaseVietnameseAbbreviations
 
         settings.customConsonants = VietnameseData.parseCustomConsonants(customConsonants)
         
@@ -767,6 +772,7 @@ class KeyboardEventHandler: EventTapManager.EventTapDelegate {
         upperCaseFirstChar: Bool,
         capitalizeOnlyAfterSpace: Bool,
         restoreIfWrongSpelling: Bool,
+        skipRestoreForUppercaseVietnameseAbbreviations: Bool,
         customConsonants: String,
         macroEnabled: Bool,
         macroInEnglishMode: Bool,
@@ -791,6 +797,7 @@ class KeyboardEventHandler: EventTapManager.EventTapDelegate {
         self.upperCaseFirstChar = upperCaseFirstChar
         self.capitalizeOnlyAfterSpace = capitalizeOnlyAfterSpace
         self.restoreIfWrongSpelling = restoreIfWrongSpelling
+        self.skipRestoreForUppercaseVietnameseAbbreviations = skipRestoreForUppercaseVietnameseAbbreviations
         self.customConsonants = customConsonants
         self.macroEnabled = macroEnabled
         self.macroInEnglishMode = macroInEnglishMode

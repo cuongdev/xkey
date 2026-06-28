@@ -92,6 +92,14 @@ struct AdvancedSection: View {
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                             .padding(.leading, 40)
+
+                                        Toggle("Bỏ qua viết tắt IN HOA bắt đầu bằng chữ Việt có dấu", isOn: $viewModel.preferences.skipRestoreForUppercaseVietnameseAbbreviations)
+                                            .padding(.leading, 40)
+
+                                        Text("Nếu bật: các viết tắt như ÂT, ÔM, ỨH sẽ không bị khôi phục về phím gõ thô. Trường hợp ĐN/ĐL luôn được giữ kể cả khi tuỳ chọn này tắt.")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                            .padding(.leading, 40)
                                     }
                                 }
                             }
